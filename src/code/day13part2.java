@@ -5,13 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
 public class day13part2 {
-
-	public static HashMap<String, Long> combinationCache = new HashMap<>();
 
 	public static void main(String[] args) {
 		File f = new File("./ressources/day13.txt");
@@ -46,10 +41,13 @@ public class day13part2 {
 			ArrayList<Integer> symmetriesH = new ArrayList<Integer>();
 			
 			for(ArrayList<String> table : tables) {
-				int hSymmetry = readHSymmetry(table);
-				int vSymmetry = readVSymmetry(table);
-				symmetriesH.add(hSymmetry);
+				int existing = readVSymmetryStrict(table);
+				int vSymmetry = readDifferentVSymmetryWithSmudge(table, existing);
 				symmetriesV.add(vSymmetry);
+				existing = readVSymmetryStrict(flip(table));
+				int hSymmetry = readDifferentVSymmetryWithSmudge(flip(table), existing);
+				symmetriesH.add(hSymmetry);
+				
 			}
 
 			System.out.println("hsym are :"+symmetriesH);
@@ -72,38 +70,80 @@ public class day13part2 {
 	}
 
 	//return -1 if no symmetry
-	private static int readVSymmetry(ArrayList<String> table) {
-
+	private static int readDifferentVSymmetryWithSmudge(ArrayList<String> table, int existing) {
+		for(String line : table) {
+			System.out.println(line);
+		}
 		for(int charIndex = 1; charIndex < table.get(0).length(); charIndex++) {
+			if(existing == charIndex)
+				continue;
 			System.out.println("Symmetry at "+charIndex+"?");
+			boolean smudge = false;
 			boolean symmetryHolds = true;
+			int lineIndex = 0;
 			for(String line : table) {
-				if(!isSymmetricAt(charIndex, line)) {
-					System.out.println("no, at "+line);
+				//System.out.println(line);
+				if(symmetricAt(charIndex, line) == 1 && !smudge) { 
+					System.out.println(String.format("Smudge at %d:%d", table.indexOf(line), charIndex) );
+					smudge = true;
+				} else if (symmetricAt(charIndex, line) > 0) {
+					System.out.println(String.format("No, at %d:%d", table.indexOf(line), charIndex));
 					symmetryHolds = false;
+					break;
 				}
+				//System.out.println("ok");
 			}
-			if(symmetryHolds) {return charIndex;}
+			if(symmetryHolds && smudge) {
+				System.out.println("yeeees");
+				return charIndex;
+			}
 		}
 		return -1;
 	}
+	
+	//return -1 if no symmetry
+		private static int readVSymmetryStrict(ArrayList<String> table) {
+			for(String line : table) {
+				System.out.println(line);
+			}
+			for(int charIndex = 1; charIndex < table.get(0).length(); charIndex++) {
+				System.out.println("Symmetry at "+charIndex+"?");
+				boolean symmetryHolds = true;
+				for(String line : table) {
+					//System.out.println(line);
+					if (symmetricAt(charIndex, line) > 0) {
+						System.out.println(String.format("No, at %d:%d", table.indexOf(line), charIndex));
+						symmetryHolds = false;
+						break;
+					}
+					//System.out.println("ok");
+				}
+				if(symmetryHolds) {
+					System.out.println("yeeees");
+					return charIndex;
+				}
+			}
+			return -1;
+		}
 
-	private static boolean isSymmetricAt(int charIndex, String line) {
+	//return amount of incorrectitude from symmetry, 0 = symmetric
+	private static int symmetricAt(int charIndex, String line) {
 		int length = line.length();
+		int symmetry = 0;
 		for(int i = charIndex; i<length; i++) {
 			int j = charIndex + (charIndex - 1 - i);
 			if(j < 0) {
-				return true;
+				return symmetry;
 			}
 			if(line.charAt(i) != line.charAt(j)) {
-				return false;
+				symmetry++;
 			}
 		}
-		return true;
+		return symmetry;
 	}
-
+	
 	//return -1 if no symmetry
-	private static int readHSymmetry(ArrayList<String> table) {
+	private static ArrayList<String> flip(ArrayList<String> table) {
 		ArrayList<String> flippedTable = new ArrayList<String>();
 		for(int i = 0; i < table.size(); i++) {
 			for(int j = 0; j < table.get(0).length(); j++) {
@@ -117,7 +157,7 @@ public class day13part2 {
 		
 		System.out.println("flipped table is "+flippedTable);
 		
-		return readVSymmetry(flippedTable);
+		return flippedTable;
 	}
 
 }

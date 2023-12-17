@@ -5,13 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
 public class day13 {
-
-	public static HashMap<String, Long> combinationCache = new HashMap<>();
 
 	public static void main(String[] args) {
 		File f = new File("./ressources/day13.txt");
